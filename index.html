@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Német Szótanuló - Kezdőlap</title>
+    <!-- Külső stílusfájl -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#" onclick="showPractice()">Gyakorlás</a></li>
+                <li><a href="#" onclick="showNewDeck()">Új pakli</a></li>
+                <li><a href="#" onclick="showDecks()">Paklik</a></li>
+                <li><a href="#" onclick="showWordList()">Szavak listázása</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="main-content">
+        <div class="container" id="content">
+            <!-- A HTML tartalom változatlanul -->
+            <h1>Üdvözlünk a Német Szótanulóban!</h1>
+            <h2>Hogyan működik az alkalmazás?</h2>
+            <p>A Német Szótanuló segít hatékonyan megtanulni a német szavakat. Hozz létre paklikat magyar-német szópárokkal, és gyakorolj kártyák segítségével. Az app automatikusan kitölti a szavak fordítását, ha már létezik egy pakliban, vagy online fordítással segít. A gyakorlás során a kártyákon először a magyar szót látod, majd megfordítva a németet, és jelölheted, hogy helyes vagy helytelen volt a válaszod.</p>
+            <h2>Hogyan kezdj neki?</h2>
+            <p>A fenti menüben válaszd az "Új pakli" opciót, hogy létrehozz egy új paklit. Add meg a pakli nevét, majd vidd fel a magyar-német szópárokat. Ha gyakorolni szeretnél, válaszd a "Gyakorlás" opciót, ahol mindig a leggyengébb teljesítményű paklit tölti be az app. A "Paklik" menüpontban kiválaszthatod a meglévő paklijaidat, a "Szavak listázása" menüpontban pedig megnézheted az összes felvitt szavadat egy táblázatban.</p>
+        </div>
+    </div>
+    <footer>
+        <p>© 2025 Német Szótanuló</p>
+    </footer>
+
+    <!-- Külső JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
