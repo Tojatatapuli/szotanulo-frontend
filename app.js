@@ -380,7 +380,7 @@ function showAddWords() {
         <input type="text" id="germanWord" placeholder="Német szó">
         <button onclick="addWord()">Szó hozzáadása</button>
         <button onclick="saveAndShowDecks()">Paklik listázása</button>
-        <button onclick="showMessage('Pakli mentve!', 'success')">Pakli mentése</button>
+        <button onclick="saveAndFinish()">Pakli mentése</button>
     `;
     setupAutoFill();
     
@@ -462,7 +462,7 @@ window.startPractice = startPractice;
 
 function flipCard() {
     const card = document.getElementById('card');
-    card.classList.toggle('flipped'); // Módosítva: 'is-flipped' helyett 'flipped'
+    card.classList.toggle('flipped');
 }
 window.flipCard = flipCard;
 
@@ -524,3 +524,11 @@ async function markIncorrect() {
     }
 }
 window.markIncorrect = markIncorrect;
+
+// Új függvény: Pakli mentése és visszalépés a kezdőlapra
+async function saveAndFinish() {
+    showMessage('Pakli mentve!', 'success');
+    await fetchData();
+    showLanding();
+}
+window.saveAndFinish = saveAndFinish;
