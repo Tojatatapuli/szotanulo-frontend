@@ -462,7 +462,7 @@ window.startPractice = startPractice;
 
 function flipCard() {
     const card = document.getElementById('card');
-    card.classList.toggle('is-flipped');
+    card.classList.toggle('flipped'); // Módosítva: 'is-flipped' helyett 'flipped'
 }
 window.flipCard = flipCard;
 
