@@ -79,6 +79,18 @@ async function showPractice() {
     }
     await fetchData();
     const content = document.getElementById('content');
+    
+    // Ellenőrizzük, hogy vannak-e paklik a decks objektumban
+    if (Object.keys(decks).length === 0) {
+        content.innerHTML = `
+            <h1>Gyakorlás</h1>
+            <p>Még nincs paklid, amit gyakorolhatnál. Hozz létre egy új paklit az \"Új pakli\" menüpontban!</p>
+            <button onclick="showLanding()">Vissza a kezdőlapra</button>
+        `;
+        return;
+    }
+
+    // Válasszuk ki az első paklit, ha nincs legalacsonyabb pontszám
     let lowestScore = Infinity;
     let lowestDeckName = null;
     for (let deckName in bestScores) {
@@ -89,13 +101,9 @@ async function showPractice() {
         }
     }
 
+    // Ha nincs legalacsonyabb pontszámú pakli, válasszuk az első paklit a decks-ből
     if (!lowestDeckName) {
-        content.innerHTML = `
-            <h1>Gyakorlás</h1>
-            <p>Még nincs paklid, amit gyakorolhatnál. Hozz létre egy új paklit az \"Új pakli\" menüpontban!</p>
-            <button onclick="showLanding()">Vissza a kezdőlapra</button>
-        `;
-        return;
+        lowestDeckName = Object.keys(decks)[0];
     }
 
     loadDeck(lowestDeckName);
