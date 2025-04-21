@@ -132,6 +132,8 @@ th {
     max-height: 200px;
     overflow-y: auto;
     display: block;
+    width: fit-content; /* A táblázat szélessége igazodjon a tartalomhoz */
+    margin: 0 auto; /* Középre igazítás */
 }
 
 .deck-list {
@@ -237,7 +239,7 @@ footer {
     width: 100%;
 }
 
-/* Új stílusok a beviteli mezők és gombok elrendezéséhez */
+/* Beviteli mezők és gombok elrendezése */
 .input-container {
     display: flex;
     justify-content: space-between;
