@@ -7,30 +7,18 @@ let currentDeckName = '';
 let decks = {};
 let bestScores = {};
 let deckName = '';
-const API_URL = 'https://szotanulo-backend.onrender.com'; // Helyettesítsd a Render URL-lel
-
-// Adatok lekérése a szervertől
-async function fetchData() {
-    try {
-        const response = await fetch(`${API_URL}/decks`);
-        const data = await response.json();
-        decks = data.decks;
-        bestScores = data.bestScores;
-    } catch (error) {
-        console.error('Hiba az adatok lekérésekor:', error);
-        showMessage('Hiba történt az adatok betöltésekor!', 'error');
-    }
-}
+let userId = localStorage.getItem('userId');
+const API_URL = 'https://szotanulo-backend.onrender.com';
 
 function showMessage(text, type) {
     const messageDiv = document.getElementById('message');
-    if (!messageDiv) return; // Ha a messageDiv nem létezik, kilépünk
+    if (!messageDiv) return;
     messageDiv.textContent = text;
     messageDiv.className = `message ${type}`;
     messageDiv.style.display = 'block';
     if (type !== 'loading') {
         setTimeout(() => {
-            if (messageDiv) { // Újra ellenőrizzük, hogy létezik-e
+            if (messageDiv) {
                 messageDiv.style.display = 'none';
             }
         }, 3000);
@@ -38,7 +26,57 @@ function showMessage(text, type) {
 }
 window.showMessage = showMessage;
 
+function checkUser() {
+    if (!userId) {
+        showUserPrompt();
+    } else {
+        showLanding();
+    }
+}
+
+function showUserPrompt() {
+    const content = document.getElementById('content');
+    if (!content) return;
+    content.innerHTML = `
+        <h1>Üdvözlünk!</h1>
+        <p>Kérlek, add meg a felhasználónevedet:</p>
+        <input type="text" id="userIdInput" placeholder="Felhasználónév">
+        <button onclick="setUserId()">Tovább</button>
+    `;
+}
+
+function setUserId() {
+    const userIdInput = document.getElementById('userIdInput');
+    if (userIdInput && userIdInput.value.trim()) {
+        userId = userIdInput.value.trim();
+        localStorage.setItem('userId', userId);
+        showLanding();
+    } else {
+        showMessage('Kérlek, add meg a felhasználónevedet!', 'error');
+    }
+}
+window.setUserId = setUserId;
+
+async function fetchData() {
+    try {
+        const response = await fetch(`${API_URL}/decks?userId=${userId}`);
+        const data = await response.json();
+        if (response.ok) {
+            decks = data.decks;
+            bestScores = data.bestScores;
+        } else {
+            showMessage(data.error, 'error');
+        }
+    } catch (error) {
+        showMessage('Hiba történt az adatok lekérésekor!', 'error');
+    }
+}
+
 async function showPractice() {
+    if (!userId) {
+        showUserPrompt();
+        return;
+    }
     await fetchData();
     const content = document.getElementById('content');
     let lowestScore = Infinity;
@@ -80,6 +118,10 @@ async function showPractice() {
 window.showPractice = showPractice;
 
 function showNewDeck() {
+    if (!userId) {
+        showUserPrompt();
+        return;
+    }
     deck = [];
     deckName = '';
     const content = document.getElementById('content');
@@ -89,7 +131,6 @@ function showNewDeck() {
         <button onclick="setDeckName()">Tovább</button>
     `;
     
-    // ENTER billentyű kezelése
     const deckNameInput = document.getElementById('deckName');
     if (deckNameInput) {
         deckNameInput.addEventListener('keypress', function(event) {
@@ -102,6 +143,10 @@ function showNewDeck() {
 window.showNewDeck = showNewDeck;
 
 async function showDecks() {
+    if (!userId) {
+        showUserPrompt();
+        return;
+    }
     await fetchData();
     const content = document.getElementById('content');
     if (Object.keys(decks).length === 0) {
@@ -163,7 +208,7 @@ window.cancelDelete = cancelDelete;
 
 async function deleteDeck(deckName) {
     try {
-        const response = await fetch(`${API_URL}/decks/${deckName}`, {
+        const response = await fetch(`${API_URL}/decks/${deckName}?userId=${userId}`, {
             method: 'DELETE'
         });
         if (response.ok) {
@@ -180,6 +225,10 @@ async function deleteDeck(deckName) {
 window.deleteDeck = deleteDeck;
 
 async function showWordList() {
+    if (!userId) {
+        showUserPrompt();
+        return;
+    }
     await fetchData();
     const content = document.getElementById('content');
     let allWords = [];
@@ -223,9 +272,13 @@ async function showWordList() {
 window.showWordList = showWordList;
 
 function showLanding() {
+    if (!userId) {
+        showUserPrompt();
+        return;
+    }
     const content = document.getElementById('content');
     content.innerHTML = `
-        <h1>Üdvözlünk a Német Szótanulóban!</h1>
+        <h1>Üdvözlünk a Német Szótanulóban, ${userId}!</h1>
         <h2>Hogyan működik az alkalmazás?</h2>
         <p>A Német Szótanuló segít hatékonyan megtanulni a német szavakat. Hozz létre paklikat magyar-német szópárokkal, és gyakorolj kártyák segítségével.</p>
         <h2>Hogyan kezdj neki?</h2>
@@ -250,7 +303,7 @@ async function setDeckName() {
         const response = await fetch(`${API_URL}/decks`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: deckName })
+            body: JSON.stringify({ userId, name: deckName })
         });
         if (response.ok) {
             showAddWords();
@@ -321,7 +374,6 @@ async function addWord() {
     const germanWordInput = document.getElementById('germanWord');
     const wordTable = document.getElementById('wordTable');
 
-    // Ellenőrizzük, hogy az elemek léteznek-e
     if (!hungarianWordInput || !germanWordInput || !wordTable) {
         showMessage('Hiba: Az űrlap elemei nem találhatók! Kérlek, frissítsd az oldalt.', 'error');
         return;
@@ -335,12 +387,11 @@ async function addWord() {
             const response = await fetch(`${API_URL}/words`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ deckName, hungarian: hungarianWord, german: germanWord })
+                body: JSON.stringify({ userId, deckName, hungarian: hungarianWord, german: germanWord })
             });
             if (response.ok) {
                 deck.push({ hungarian: hungarianWord, german: germanWord });
                 
-                // Ellenőrizzük újra, hogy a wordTable még létezik-e
                 const updatedWordTable = document.getElementById('wordTable');
                 if (!updatedWordTable) {
                     showMessage('Hiba: A táblázat nem található a frissítéshez!', 'error');
@@ -361,7 +412,6 @@ async function addWord() {
                 hunCell.textContent = hungarianWord;
                 gerCell.textContent = germanWord;
                 
-                // Ellenőrizzük, hogy az input mezők még léteznek-e
                 const updatedHungarianWordInput = document.getElementById('hungarianWord');
                 const updatedGermanWordInput = document.getElementById('germanWord');
                 if (updatedHungarianWordInput && updatedGermanWordInput) {
@@ -372,7 +422,8 @@ async function addWord() {
 
                 showMessage('Szó hozzáadva!', 'success');
             } else {
-                showMessage('Hiba történt a szó hozzáadása során!', 'error');
+                const data = await response.json();
+                showMessage(data.error, 'error');
             }
         } catch (error) {
             showMessage('Hiba történt a szó hozzáadása során!', 'error');
@@ -454,7 +505,7 @@ async function showCard() {
                 const response = await fetch(`${API_URL}/scores`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ deckName: currentDeckName, score: percentage })
+                    body: JSON.stringify({ userId, deckName: currentDeckName, score: percentage })
                 });
                 if (response.ok) {
                     bestScores[currentDeckName] = percentage;
@@ -493,3 +544,6 @@ async function saveAndFinish() {
     showLanding();
 }
 window.saveAndFinish = saveAndFinish;
+
+// Alkalmazás indítása
+checkUser();
