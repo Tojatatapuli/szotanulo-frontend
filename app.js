@@ -10,6 +10,19 @@ let deckName = '';
 let userId = localStorage.getItem('userId');
 const API_URL = 'https://szotanulo-backend.onrender.com';
 
+// Hamburger menü lenyitása/összecsukása
+function toggleMenu() {
+    const menuItems = document.getElementById('menuItems');
+    menuItems.classList.toggle('active');
+}
+window.toggleMenu = toggleMenu;
+
+// Vissza gomb működése
+function goBack() {
+    window.history.back();
+}
+window.goBack = goBack;
+
 function showMessage(text, type) {
     const messageDiv = document.getElementById('message');
     if (!messageDiv) return;
@@ -58,6 +71,8 @@ function setUserId() {
 window.setUserId = setUserId;
 
 async function fetchData() {
+    const loader = document.getElementById('loader');
+    if (loader) loader.style.display = 'block'; // Betöltési animáció megjelenítése
     try {
         const response = await fetch(`${API_URL}/decks?userId=${userId}`);
         const data = await response.json();
@@ -70,6 +85,8 @@ async function fetchData() {
         }
     } catch (error) {
         showMessage('Hiba történt az adatok lekérésekor!', 'error');
+    } finally {
+        if (loader) loader.style.display = 'none'; // Betöltési animáció elrejtése
     }
 }
 
@@ -115,7 +132,7 @@ async function showPractice(selectedDeckName = null) {
         <div id="practiceSection">
             <h2 id="deckTitle">${lowestDeckName}</h2>
             <div class="card" id="card" onclick="flipCard()">
-                <div class="card-inner">
+                <div classandong="card-inner">
                     <div class="card-front" id="cardFront"></div>
                     <div class="card-back" id="cardBack"></div>
                 </div>
@@ -136,7 +153,7 @@ function showNewDeck() {
     }
     deck = [];
     deckName = '';
-    const content = document.getElementOfId('content');
+    const content = document.getElementById('content');
     content.innerHTML = `
         <h1>Új pakli létrehozása</h1>
         <input type="text" id="deckName" placeholder="Pakli neve">
@@ -176,8 +193,8 @@ async function showDecks() {
             <li id="deck-${deckName}">
                 <span onclick="startPractice('${deckName}')">${deckName} (${bestScore}%)</span>
                 <div>
-                    <button class="practice-btn" onclick="startPractice('${deckName}')">Gyakorlás</button>
-                    <button class="delete-btn" onclick="confirmDelete('${deckName}', this)">Törlés</button>
+                    <button class="practice-btn" onclick="startPractice('${deckName}')"><i class="fas fa-book"></i> Gyakorlás</button>
+                    <button class="delete-btn" onclick="confirmDelete('${deckName}', this)"><i class="fas fa-trash-alt"></i> Törlés</button>
                 </div>
             </li>
         `;
@@ -211,8 +228,8 @@ async function cancelDelete(deckName, button) {
     li.innerHTML = `
         <span onclick="startPractice('${deckName}')">${deckName} (${bestScore}%)</span>
         <div>
-            <button class="practice-btn" onclick="startPractice('${deckName}')">Gyakorlás</button>
-            <button class="delete-btn" onclick="confirmDelete('${deckName}', this)">Törlés</button>
+            <button class="practice-btn" onclick="startPractice('${deckName}')"><i class="fas fa-book"></i> Gyakorlás</button>
+            <button class="delete-btn" onclick="confirmDelete('${deckName}', this)"><i class="fas fa-trash-alt"></i> Törlés</button>
         </div>
     `;
 }
@@ -266,6 +283,13 @@ async function showWordList() {
         </tr>
     `).join('');
 
+    let cardItems = allWords.map(word => `
+        <div class="word-card">
+            <p><strong>Magyar:</strong> ${word.hungarian}</p>
+            <p><strong>Német:</strong> ${word.german}</p>
+        </div>
+    `).join('');
+
     content.innerHTML = `
         <h1>Szavak listázása</h1>
         <table>
@@ -279,6 +303,7 @@ async function showWordList() {
                 ${tableRows}
             </tbody>
         </table>
+        ${cardItems}
         <button onclick="showLanding()">Vissza a kezdőlapra</button>
     `;
 }
@@ -343,6 +368,13 @@ function showAddWords() {
             <td>${word.german}</td>
         </tr>
     `).join('');
+
+    let cardItems = deck.map(word => `
+        <div class="word-card">
+            <p><strong>Magyar:</strong> ${word.hungarian}</p>
+            <p><strong>Német:</strong> ${word.german}</p>
+        </div>
+    `).join('');
     
     const tableClass = deck.length > 0 ? 'word-table' : '';
     
@@ -361,6 +393,7 @@ function showAddWords() {
                 ${tableRows}
             </tbody>
         </table>
+        ${cardItems}
         
         <div class="input-container">
             <div class="input-group">
@@ -442,6 +475,7 @@ async function addWord() {
                 }
 
                 showMessage('Szó hozzáadva!', 'success');
+                showAddWords(); // Frissítjük az oldalt a kártyás nézet miatt
             } else {
                 const data = await response.json();
                 showMessage(data.error, 'error');
