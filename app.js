@@ -61,6 +61,7 @@ async function fetchData() {
     try {
         const response = await fetch(`${API_URL}/decks?userId=${userId}`);
         const data = await response.json();
+        console.log('Backend válasz:', data); // Hibakeresés
         if (response.ok) {
             decks = data.decks;
             bestScores = data.bestScores;
@@ -80,7 +81,6 @@ async function showPractice() {
     await fetchData();
     const content = document.getElementById('content');
     
-    // Ellenőrizzük, hogy vannak-e paklik a decks objektumban
     if (Object.keys(decks).length === 0) {
         content.innerHTML = `
             <h1>Gyakorlás</h1>
@@ -90,7 +90,6 @@ async function showPractice() {
         return;
     }
 
-    // Válasszuk ki az első paklit, ha nincs legalacsonyabb pontszám
     let lowestScore = Infinity;
     let lowestDeckName = null;
     for (let deckName in bestScores) {
@@ -101,7 +100,6 @@ async function showPractice() {
         }
     }
 
-    // Ha nincs legalacsonyabb pontszámú pakli, válasszuk az első paklit a decks-ből
     if (!lowestDeckName) {
         lowestDeckName = Object.keys(decks)[0];
     }
@@ -241,7 +239,8 @@ async function showWordList() {
     const content = document.getElementById('content');
     let allWords = [];
     for (let deckName in decks) {
-        const words = decks[deckName];
+        const words = decks[deckName] || [];
+        console.log(`Pakli: ${deckName}, Szavak:`, words); // Hibakeresés
         allWords = allWords.concat(words.map(word => ({ hungarian: word.hungarian, german: word.german })));
     }
 
@@ -468,6 +467,7 @@ async function saveAndShowDecks() {
 window.saveAndShowDecks = saveAndShowDecks;
 
 function loadDeck(deckName) {
+    console.log('Betöltött pakli:', deckName, decks[deckName]); // Hibakeresés
     deck = decks[deckName] || [];
     currentDeckName = deckName;
     currentIndex = 0;
@@ -477,6 +477,7 @@ function loadDeck(deckName) {
 window.loadDeck = loadDeck;
 
 async function startPractice(deckName) {
+    await fetchData(); // Friss adatok lekérése
     loadDeck(deckName);
     showPractice();
 }
