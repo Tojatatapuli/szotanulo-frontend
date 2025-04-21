@@ -90,11 +90,14 @@ function showNewDeck() {
     `;
     
     // ENTER billentyű kezelése
-    document.getElementById('deckName').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            setDeckName();
-        }
-    });
+    const deckNameInput = document.getElementById('deckName');
+    if (deckNameInput) {
+        deckNameInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                setDeckName();
+            }
+        });
+    }
 }
 window.showNewDeck = showNewDeck;
 
@@ -232,7 +235,12 @@ function showLanding() {
 window.showLanding = showLanding;
 
 async function setDeckName() {
-    deckName = document.getElementById('deckName').value.trim();
+    const deckNameInput = document.getElementById('deckName');
+    if (!deckNameInput) {
+        showMessage('Hiba: A pakli neve mező nem található!', 'error');
+        return;
+    }
+    deckName = deckNameInput.value.trim();
     if (!deckName) {
         showMessage('Kérlek, add meg a pakli nevét!', 'error');
         return;
@@ -258,6 +266,10 @@ window.setDeckName = setDeckName;
 
 function showAddWords() {
     const content = document.getElementById('content');
+    if (!content) {
+        console.error('A content elem nem található!');
+        return;
+    }
     
     let tableRows = deck.map(word => `
         <tr>
@@ -266,7 +278,6 @@ function showAddWords() {
         </tr>
     `).join('');
     
-    // Ha a deck üres, nem adunk hozzá word-table osztályt, így nem lesz görgetősáv
     const tableClass = deck.length > 0 ? 'word-table' : '';
     
     content.innerHTML = `
@@ -292,17 +303,33 @@ function showAddWords() {
         <button onclick="saveAndFinish()">Pakli mentése</button>
     `;
     
-    document.getElementById('germanWord').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            addWord();
-        }
-    });
+    const germanWordInput = document.getElementById('germanWord');
+    if (germanWordInput) {
+        germanWordInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                addWord();
+            }
+        });
+    } else {
+        console.error('A germanWord elem nem található!');
+    }
 }
 window.showAddWords = showAddWords;
 
 async function addWord() {
-    const hungarianWord = document.getElementById('hungarianWord').value;
-    const germanWord = document.getElementById('germanWord').value;
+    const hungarianWordInput = document.getElementById('hungarianWord');
+    const germanWordInput = document.getElementById('germanWord');
+    const wordTable = document.getElementById('wordTable');
+
+    // Ellenőrizzük, hogy az elemek léteznek-e
+    if (!hungarianWordInput || !germanWordInput || !wordTable) {
+        showMessage('Hiba: Az űrlap elemei nem találhatók! Kérlek, frissítsd az oldalt.', 'error');
+        return;
+    }
+
+    const hungarianWord = hungarianWordInput.value.trim();
+    const germanWord = germanWordInput.value.trim();
+
     if (hungarianWord && germanWord) {
         try {
             const response = await fetch(`${API_URL}/words`, {
@@ -313,20 +340,36 @@ async function addWord() {
             if (response.ok) {
                 deck.push({ hungarian: hungarianWord, german: germanWord });
                 
-                const wordTable = document.getElementById('wordTable');
-                // Most már biztosan szükség van a word-table osztályra, mert van tartalom
-                wordTable.classList.add('word-table');
+                // Ellenőrizzük újra, hogy a wordTable még létezik-e
+                const updatedWordTable = document.getElementById('wordTable');
+                if (!updatedWordTable) {
+                    showMessage('Hiba: A táblázat nem található a frissítéshez!', 'error');
+                    return;
+                }
+
+                updatedWordTable.classList.add('word-table');
                 
-                const tbody = wordTable.getElementsByTagName('tbody')[0];
+                const tbody = updatedWordTable.getElementsByTagName('tbody')[0];
+                if (!tbody) {
+                    showMessage('Hiba: A táblázat törzse nem található!', 'error');
+                    return;
+                }
+
                 const newRow = tbody.insertRow();
                 const hunCell = newRow.insertCell(0);
                 const gerCell = newRow.insertCell(1);
                 hunCell.textContent = hungarianWord;
                 gerCell.textContent = germanWord;
                 
-                document.getElementById('hungarianWord').value = '';
-                document.getElementById('germanWord').value = '';
-                document.getElementById('hungarianWord').focus();
+                // Ellenőrizzük, hogy az input mezők még léteznek-e
+                const updatedHungarianWordInput = document.getElementById('hungarianWord');
+                const updatedGermanWordInput = document.getElementById('germanWord');
+                if (updatedHungarianWordInput && updatedGermanWordInput) {
+                    updatedHungarianWordInput.value = '';
+                    updatedGermanWordInput.value = '';
+                    updatedHungarianWordInput.focus();
+                }
+
                 showMessage('Szó hozzáadva!', 'success');
             } else {
                 showMessage('Hiba történt a szó hozzáadása során!', 'error');
@@ -347,9 +390,11 @@ async function saveAndShowDecks() {
             await fetchData();
             showDecks();
         } else {
+            await fetchData();
             showDecks();
         }
     } else {
+        await fetchData();
         showDecks();
     }
 }
@@ -372,7 +417,9 @@ window.startPractice = startPractice;
 
 function flipCard() {
     const card = document.getElementById('card');
-    card.classList.toggle('flipped');
+    if (card) {
+        card.classList.toggle('flipped');
+    }
 }
 window.flipCard = flipCard;
 
@@ -380,6 +427,11 @@ async function showCard() {
     const cardFront = document.getElementById('cardFront');
     const cardBack = document.getElementById('cardBack');
     const resultDiv = document.getElementById('result');
+
+    if (!cardFront || !cardBack || !resultDiv) {
+        console.error('A kártya elemei nem találhatók!');
+        return;
+    }
 
     if (deck.length === 0) {
         cardFront.textContent = 'Nincs több szó a pakliban!';
@@ -435,7 +487,6 @@ async function markIncorrect() {
 }
 window.markIncorrect = markIncorrect;
 
-// Új függvény: Pakli mentése és visszalépés a kezdőlapra
 async function saveAndFinish() {
     showMessage('Pakli mentve!', 'success');
     await fetchData();
