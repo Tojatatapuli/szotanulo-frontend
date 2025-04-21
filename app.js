@@ -73,7 +73,7 @@ async function fetchData() {
     }
 }
 
-async function showPractice() {
+async function showPractice(selectedDeckName = null) {
     if (!userId) {
         showUserPrompt();
         return;
@@ -92,16 +92,22 @@ async function showPractice() {
 
     let lowestScore = Infinity;
     let lowestDeckName = null;
-    for (let deckName in bestScores) {
-        const score = parseFloat(bestScores[deckName]);
-        if (score < lowestScore) {
-            lowestScore = score;
-            lowestDeckName = deckName;
+    
+    // Ha a startPractice-ből érkezik a deckName, akkor azt használjuk
+    if (selectedDeckName && decks[selectedDeckName]) {
+        lowestDeckName = selectedDeckName;
+    } else {
+        // Ha nincs kiválasztott pakli, akkor a legalacsonyabb pontszámú paklit választjuk
+        for (let deckName in bestScores) {
+            const score = parseFloat(bestScores[deckName]);
+            if (score < lowestScore) {
+                lowestScore = score;
+                lowestDeckName = deckName;
+            }
         }
-    }
-
-    if (!lowestDeckName) {
-        lowestDeckName = Object.keys(decks)[0];
+        if (!lowestDeckName) {
+            lowestDeckName = Object.keys(decks)[0];
+        }
     }
 
     loadDeck(lowestDeckName);
@@ -130,7 +136,7 @@ function showNewDeck() {
     }
     deck = [];
     deckName = '';
-    const content = document.getElementById('content');
+    const content = document.getElementOfId('content');
     content.innerHTML = `
         <h1>Új pakli létrehozása</h1>
         <input type="text" id="deckName" placeholder="Pakli neve">
@@ -479,7 +485,7 @@ window.loadDeck = loadDeck;
 async function startPractice(deckName) {
     await fetchData(); // Friss adatok lekérése
     loadDeck(deckName);
-    showPractice();
+    showPractice(deckName); // Átadjuk a deckName-et
 }
 window.startPractice = startPractice;
 
