@@ -236,3 +236,27 @@ footer {
     bottom: 0;
     width: 100%;
 }
+
+/* Új stílusok a beviteli mezők és gombok elrendezéséhez */
+.input-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 1em 0;
+}
+
+.input-group {
+    flex: 1;
+    margin: 0 0.5em;
+}
+
+.input-group input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    margin-top: 1em;
+}

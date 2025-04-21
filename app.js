@@ -357,11 +357,19 @@ function showAddWords() {
             </tbody>
         </table>
         
-        <input type="text" id="hungarianWord" placeholder="Magyar szó">
-        <input type="text" id="germanWord" placeholder="Német szó">
-        <button onclick="addWord()">Szó hozzáadása</button>
-        <button onclick="saveAndShowDecks()">Paklik listázása</button>
-        <button onclick="saveAndFinish()">Pakli mentése</button>
+        <div class="input-container">
+            <div class="input-group">
+                <input type="text" id="hungarianWord" placeholder="Magyar szó">
+            </div>
+            <div class="input-group">
+                <input type="text" id="germanWord" placeholder="Német szó">
+            </div>
+        </div>
+        <div class="button-container">
+            <button onclick="addWord()">Szó hozzáadása</button>
+            <button onclick="saveAndShowDecks()">Paklik listázása</button>
+            <button onclick="saveAndFinish()">Pakli mentése</button>
+        </div>
     `;
     
     const germanWordInput = document.getElementById('germanWord');
