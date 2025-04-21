@@ -6,7 +6,6 @@ let total = 0;
 let currentDeckName = '';
 let decks = {};
 let bestScores = {};
-let manuallyEdited = { hungarian: false, german: false };
 let deckName = '';
 const API_URL = 'https://szotanulo-backend.onrender.com'; // Helyettesítsd a Render URL-lel
 
@@ -25,111 +24,19 @@ async function fetchData() {
 
 function showMessage(text, type) {
     const messageDiv = document.getElementById('message');
+    if (!messageDiv) return; // Ha a messageDiv nem létezik, kilépünk
     messageDiv.textContent = text;
     messageDiv.className = `message ${type}`;
     messageDiv.style.display = 'block';
     if (type !== 'loading') {
         setTimeout(() => {
-            messageDiv.style.display = 'none';
+            if (messageDiv) { // Újra ellenőrizzük, hogy létezik-e
+                messageDiv.style.display = 'none';
+            }
         }, 3000);
     }
 }
 window.showMessage = showMessage;
-
-function findMatchingWord(inputWord, language) {
-    for (let deckName in decks) {
-        const words = decks[deckName];
-        for (let word of words) {
-            if (language === 'hungarian' && word.hungarian.toLowerCase() === inputWord.toLowerCase()) {
-                return word.german;
-            }
-            if (language === 'german' && word.german.toLowerCase() === inputWord.toLowerCase()) {
-                return word.hungarian;
-            }
-        }
-    }
-    return null;
-}
-window.findMatchingWord = findMatchingWord;
-
-async function fetchTranslation(word, sourceLang, targetLang) {
-    try {
-        showMessage('Betöltés...', 'loading');
-        const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=${sourceLang}|${targetLang}`);
-        const data = await response.json();
-        if (data.responseStatus === 200 && data.matches && data.matches.length > 0) {
-            return data.matches[0].translation;
-        }
-        return null;
-    } catch (error) {
-        console.error('Hiba a fordítás során:', error);
-        return null;
-    } finally {
-        const messageDiv = document.getElementById('message');
-        messageDiv.style.display = 'none';
-    }
-}
-window.fetchTranslation = fetchTranslation;
-
-function setupAutoFill() {
-    const hungarianInput = document.getElementById('hungarianWord');
-    const germanInput = document.getElementById('germanWord');
-
-    if (hungarianInput && germanInput) {
-        hungarianInput.addEventListener('input', async function() {
-            const hungarianWord = hungarianInput.value.trim();
-            manuallyEdited.hungarian = true;
-
-            if (!hungarianWord) {
-                if (!manuallyEdited.german) {
-                    germanInput.value = '';
-                }
-                return;
-            }
-
-            if (!manuallyEdited.german) {
-                let match = findMatchingWord(hungarianWord, 'hungarian');
-                if (match) {
-                    germanInput.value = match;
-                } else {
-                    const translation = await fetchTranslation(hungarianWord, 'hu', 'de');
-                    if (translation) {
-                        germanInput.value = translation;
-                    } else {
-                        germanInput.value = '';
-                    }
-                }
-            }
-        });
-
-        germanInput.addEventListener('input', async function() {
-            const germanWord = germanInput.value.trim();
-            manuallyEdited.german = true;
-
-            if (!germanWord) {
-                if (!manuallyEdited.hungarian) {
-                    hungarianInput.value = '';
-                }
-                return;
-            }
-
-            if (!manuallyEdited.hungarian) {
-                let match = findMatchingWord(germanWord, 'german');
-                if (match) {
-                    hungarianInput.value = match;
-                } else {
-                    const translation = await fetchTranslation(germanWord, 'de', 'hu');
-                    if (translation) {
-                        hungarianInput.value = translation;
-                    } else {
-                        hungarianInput.value = '';
-                    }
-                }
-            }
-        });
-    }
-}
-window.setupAutoFill = setupAutoFill;
 
 async function showPractice() {
     await fetchData();
@@ -179,7 +86,6 @@ function showNewDeck() {
     content.innerHTML = `
         <h1>Új pakli létrehozása</h1>
         <input type="text" id="deckName" placeholder="Pakli neve">
-        <div id="message" class="message"></div>
         <button onclick="setDeckName()">Tovább</button>
     `;
     
@@ -360,11 +266,14 @@ function showAddWords() {
         </tr>
     `).join('');
     
+    // Ha a deck üres, nem adunk hozzá word-table osztályt, így nem lesz görgetősáv
+    const tableClass = deck.length > 0 ? 'word-table' : '';
+    
     content.innerHTML = `
         <h1>Szavak hozzáadása a paklihoz</h1>
         <p>Pakli neve: ${deckName}</p>
         
-        <table id="wordTable" class="word-table">
+        <table id="wordTable" class="${tableClass}">
             <thead>
                 <tr>
                     <th>Magyar</th>
@@ -382,7 +291,6 @@ function showAddWords() {
         <button onclick="saveAndShowDecks()">Paklik listázása</button>
         <button onclick="saveAndFinish()">Pakli mentése</button>
     `;
-    setupAutoFill();
     
     document.getElementById('germanWord').addEventListener('keypress', function(event) {
         if (event.key === 'Enter') {
@@ -405,8 +313,12 @@ async function addWord() {
             if (response.ok) {
                 deck.push({ hungarian: hungarianWord, german: germanWord });
                 
-                const wordTable = document.getElementById('wordTable').getElementsByTagName('tbody')[0];
-                const newRow = wordTable.insertRow();
+                const wordTable = document.getElementById('wordTable');
+                // Most már biztosan szükség van a word-table osztályra, mert van tartalom
+                wordTable.classList.add('word-table');
+                
+                const tbody = wordTable.getElementsByTagName('tbody')[0];
+                const newRow = tbody.insertRow();
                 const hunCell = newRow.insertCell(0);
                 const gerCell = newRow.insertCell(1);
                 hunCell.textContent = hungarianWord;
@@ -416,8 +328,6 @@ async function addWord() {
                 document.getElementById('germanWord').value = '';
                 document.getElementById('hungarianWord').focus();
                 showMessage('Szó hozzáadva!', 'success');
-                
-                manuallyEdited = { hungarian: false, german: false };
             } else {
                 showMessage('Hiba történt a szó hozzáadása során!', 'error');
             }

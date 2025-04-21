@@ -128,11 +128,13 @@ button:hover {
     text-align: center;
 }
 .message {
-    margin: 10px 0;
+    margin: 10px auto;
     padding: 10px;
     border-radius: 5px;
     text-align: center;
     display: none;
+    max-width: 800px;
+    width: 100%;
 }
 .message.success {
     background-color: #d4edda;
@@ -176,17 +178,11 @@ th {
     margin-bottom: 20px;
     max-height: 300px;
     overflow-y: auto;
-    display: block;
 }
 .word-table thead {
     position: sticky;
     top: 0;
     background-color: #343a40;
-}
-.word-table tbody {
-    display: block;
-    overflow-y: auto;
-    max-height: 250px;
 }
 .word-table th, 
 .word-table td {
@@ -195,7 +191,6 @@ th {
     box-sizing: border-box;
 }
 .word-table tr {
-    display: table;
     width: 100%;
     table-layout: fixed;
 }
@@ -205,6 +200,20 @@ th {
 .word-table tbody tr:hover {
     background-color: #e9ecef;
 }
+
+/* Szövegbeviteli mezők stílusa a "Szavak hozzáadása" oldalon */
+input[type="text"]#hungarianWord,
+input[type="text"]#germanWord {
+    width: calc(50% - 20px); /* A táblázat oszlopaihoz igazítjuk */
+    height: 40px; /* Magasság növelése */
+    font-size: 1.2em; /* Betűméret növelése */
+    padding: 5px 10px; /* Belső margó */
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
 ul.deck-list {
     list-style: none;
     padding: 0;
@@ -269,5 +278,10 @@ footer {
     nav ul li a {
         display: block;
         padding: 10px;
+    }
+    input[type="text"]#hungarianWord,
+    input[type="text"]#germanWord {
+        width: calc(100% - 20px); /* Mobilon teljes szélesség */
+        font-size: 1em;
     }
 }
